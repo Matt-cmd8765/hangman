@@ -5,6 +5,16 @@ class Player
   def initialize(name)
     @name = name
   end
+
+  def guess
+    puts 'Guess a letter!'
+    guess = gets.chomp
+    until guess.match(/^[[:alpha:]]$/)
+      puts 'Please enter a letter of the alphabet'
+      guess = gets.chomp
+    end
+    guess.downcase
+  end
 end
 
 # generate word
@@ -26,28 +36,103 @@ class Computer
         @@correct_length_array << word
       end
     end
-    @word = @@correct_length_array[rand(0..7556)]
+    length = @@correct_length_array.length
+    @word = @@correct_length_array[rand(0..length)]
   end
 end
 
-
-# show hangman
+# show hangman, take guesses
 class Board
+  attr_accessor :word, :array, :player_array
+
+  def initialize(word)
+    @word = word
+    @array = word.split('')
+  end
+
+  def player_board
+    @player_array = []
+    length = @array.length
+    length.times do
+      @player_array << ' _ '
+    end
+  end
+
+  def player_guess(guess)
+    @array.each_with_index do |letter, index|
+      @player_array[index] = guess if letter == guess
+    end
+  end
 end
 
-# load and save the game 
+# load and save the game
 class SaveAndLoad
+  
 end
 
-
+# play the game
 class Game
+  attr_accessor :word, :player, :board, :game, :guess
+
+  def generate_word
+    comp = Computer.new
+    comp.file_read
+    comp.generate_word
+    @word = comp.word
+  end
+
+  def show_board
+    @board = Board.new(@word)
+    @board.player_board
+    puts ' '
+    puts @board.player_array.join('')
+    puts ' '
+  end
+
+  def player_info
+    puts "Let's play hangman! Please tell me your name"
+    name = gets.chomp
+    @player = Player.new(name)
+  end
+
+  def the_guess
+    @guess = @player.guess
+    @board.player_guess(guess)
+    puts @board.player_array.join('')
+  end
+
+  def winner?
+    @word == @board.player_array.join('')
+  end
+
+  def da_game
+    guess_limit = 6
+    guess_num = 0
+    while guess_num < guess_limit
+      @game.the_guess
+      da_word = @word.split('')
+      guess_num += 1 unless da_word.include?(@guess)
+      if @game.winner?
+        puts "#{@player.name} wins! Your prize? Nothing."
+        break
+      end
+      puts "#{guess_limit - guess_num} guesses remaining!" unless guess_num == 6
+    end
+  end
+
+  def loser_statement
+    puts "You lose! the word was #{@word}"
+  end
+
+  def play(game)
+    @game = game
+    game.generate_word
+    game.show_board
+    game.player_info
+    game.da_game
+    game.loser_statement unless game.winner?
+  end
 end
 
-gat = Computer.new
-gat.file_read
-gat.generate_word
-puts gat.word
-
-name = gets.chomp
-player = Player.new(name)
-puts player.name
+game = Game.new
+game.play(game)
