@@ -1,3 +1,5 @@
+require 'yaml'
+
 # Save name, guess method
 class Player
   attr_accessor :name
@@ -59,6 +61,7 @@ class Board
   end
 
   def player_guess(guess)
+    p @array
     @array.each_with_index do |letter, index|
       @player_array[index] = guess if letter == guess
     end
@@ -68,17 +71,32 @@ end
 # load and save the game
 class SaveAndLoad
   
+  def initialize(game)
+    @game = game
+  end
+  
+  def save
+    serialized_object = YAML::dump(@game)
+    Dir.mkdir('output') unless Dir.exist?('output')
+    puts 'What would you like to call your saved game?'
+    filename = gets.chomp
+    file = "output/#{filename}.yml"
+    File.open(file, 'w') do |the|
+      the.puts serialized_object
+    end
+  end
 end
 
 # play the game
 class Game
-  attr_accessor :word, :player, :board, :game, :guess
+  attr_accessor :word, :player, :board, :game, :guess, :guess_num
 
   def generate_word
     comp = Computer.new
     comp.file_read
     comp.generate_word
     @word = comp.word
+    puts @word
   end
 
   def show_board
@@ -107,7 +125,7 @@ class Game
 
   def da_game
     guess_limit = 6
-    guess_num = 0
+    @guess_num = 0
     while guess_num < guess_limit
       @game.the_guess
       da_word = @word.split('')
@@ -116,12 +134,20 @@ class Game
         puts "#{@player.name} wins! Your prize? Nothing."
         break
       end
-      puts "#{guess_limit - guess_num} guesses remaining!" unless guess_num == 6
+      puts "#{guess_limit - @guess_num} guesses remaining!" unless guess_num == 6
+      puts 'Would you like to save the game (Y or N)?'
+      answer = gets.chomp
+      @game.save_game if answer == 'Y'
     end
   end
 
   def loser_statement
     puts "You lose! the word was #{@word}"
+  end
+
+  def save_game
+    save = SaveAndLoad.new(@game)
+    save.save
   end
 
   def play(game)
