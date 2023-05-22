@@ -70,20 +70,26 @@ end
 
 # load and save the game
 class SaveAndLoad
+  attr_accessor :serialized_object
   
   def initialize(game)
     @game = game
   end
   
   def save
-    serialized_object = YAML::dump(@game)
+    @serialized_object = YAML::dump(@game)
     Dir.mkdir('output') unless Dir.exist?('output')
     puts 'What would you like to call your saved game?'
     filename = gets.chomp
     file = "output/#{filename}.yml"
     File.open(file, 'w') do |the|
-      the.puts serialized_object
+      the.puts @serialized_object
     end
+  end
+
+  def load_game
+    yaml = YAML::load(@serialized_object)
+    puts yaml
   end
 end
 
@@ -160,5 +166,11 @@ class Game
   end
 end
 
-game = Game.new
-game.play(game)
+saved = File.open('output/test.yml', 'r')
+loaded_game = Psych.safe_load(saved, permitted_classes: [Game, Board, Player], aliases: true)
+saved.close
+puts loaded_game.word
+
+
+# game = Game.new
+# game.play(game)
