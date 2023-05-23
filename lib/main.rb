@@ -34,9 +34,7 @@ class Computer
 
   def generate_word
     @@array.each do |word|
-      if word.length >= 5 && word.length <= 12
-        @@correct_length_array << word
-      end
+      @@correct_length_array << word if word.length >= 5 && word.length <= 12
     end
     length = @@correct_length_array.length
     @word = @@correct_length_array[rand(0..length)]
@@ -61,7 +59,6 @@ class Board
   end
 
   def player_guess(guess)
-    p @array
     @array.each_with_index do |letter, index|
       @player_array[index] = guess if letter == guess
     end
@@ -88,21 +85,26 @@ class SaveAndLoad
   end
 
   def load_game
-    yaml = YAML::load(@serialized_object)
-    puts yaml
+    puts 'Please select one of these saved games'
+    filenames = Dir.glob('output/*').map { |file| file[(file.index('/')+1)...(file.index('.'))]}
+    puts filenames
+    file = gets.chomp
+    saved = File.open("output/#{file}.yml", 'r')
+    loaded_game = YAML.safe_load(saved, permitted_classes: [Game, Board, Player], aliases: true)
+    saved.close
+    loaded_game
   end
 end
 
 # play the game
 class Game
-  attr_accessor :word, :player, :board, :game, :guess, :guess_num
+  attr_accessor :word, :player, :board, :game, :guess, :guess_num, :player_array
 
   def generate_word
     comp = Computer.new
     comp.file_read
     comp.generate_word
     @word = comp.word
-    puts @word
   end
 
   def show_board
@@ -117,12 +119,14 @@ class Game
     puts "Let's play hangman! Please tell me your name"
     name = gets.chomp
     @player = Player.new(name)
+    @guess_num = 0
   end
 
   def the_guess
     @guess = @player.guess
     @board.player_guess(guess)
-    puts @board.player_array.join('')
+    @player_array = @board.player_array.join('')
+    puts @player_array
   end
 
   def winner?
@@ -131,17 +135,16 @@ class Game
 
   def da_game
     guess_limit = 6
-    @guess_num = 0
     while guess_num < guess_limit
       @game.the_guess
       da_word = @word.split('')
-      guess_num += 1 unless da_word.include?(@guess)
+      @guess_num += 1 unless da_word.include?(@guess)
       if @game.winner?
         puts "#{@player.name} wins! Your prize? Nothing."
         break
       end
-      puts "#{guess_limit - @guess_num} guesses remaining!" unless guess_num == 6
-      puts 'Would you like to save the game (Y or N)?'
+      puts "#{guess_limit - @guess_num} guesses remaining!" unless @guess_num == 6
+      puts 'Would you like to save the game? Type Y to save or press enter to continue playing.'
       answer = gets.chomp
       @game.save_game if answer == 'Y'
     end
@@ -156,6 +159,16 @@ class Game
     save.save
   end
 
+  def load_game
+    game = nil
+    loadit = SaveAndLoad.new(game)
+    @game = loadit.load_game
+    puts ''
+    puts @game.player_array
+    @game.da_game
+    @game.loser_statement unless @game.winner?
+  end
+
   def play(game)
     @game = game
     game.generate_word
@@ -164,13 +177,18 @@ class Game
     game.da_game
     game.loser_statement unless game.winner?
   end
+
+  def start_game(game)
+    puts 'Load game (L) or start a new game (N)'
+    answer = gets.chomp
+    until answer == 'L' || answer == 'N'
+      puts 'Please select load (L) or new game (N)'
+      answer = gets.chomp
+    end
+    game.load_game if answer == 'L'
+    game.play(game) if answer == 'N'
+  end
 end
 
-saved = File.open('output/test.yml', 'r')
-loaded_game = Psych.safe_load(saved, permitted_classes: [Game, Board, Player], aliases: true)
-saved.close
-puts loaded_game.word
-
-
-# game = Game.new
-# game.play(game)
+game = Game.new
+game.start_game(game)

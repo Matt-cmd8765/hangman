@@ -1,0 +1,33 @@
+--- &1 !ruby/object:Game
+game: *1
+word: contributed
+board: !ruby/object:Board
+  word: contributed
+  array:
+  - c
+  - o
+  - "n"
+  - t
+  - r
+  - i
+  - b
+  - u
+  - t
+  - e
+  - d
+  player_array:
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - e
+  - " _ "
+player: !ruby/object:Player
+  name: Matt
+guess_num: 0
+guess: e

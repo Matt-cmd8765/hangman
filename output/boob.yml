@@ -1,0 +1,28 @@
+--- &1 !ruby/object:Game
+game: *1
+word: medicine
+board: !ruby/object:Board
+  word: medicine
+  array:
+  - m
+  - e
+  - d
+  - i
+  - c
+  - i
+  - "n"
+  - e
+  player_array:
+  - " _ "
+  - e
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - " _ "
+  - e
+player: !ruby/object:Player
+  name: Matt
+guess_num: 0
+guess: e
+player_array: " _ e _  _  _  _  _ e"
